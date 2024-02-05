@@ -1,0 +1,29 @@
+---
+title: "Informe de Ejemplo"
+output: html_document
+---
+
+# Informe de Ejemplo
+
+Este es un informe de ejemplo generado desde un archivo R Markdown y mostrado en una aplicación Shiny.
+
+## Gráfico de Ejemplo
+
+```{r}
+# Código R para generar un gráfico
+library(ggplot2)
+data <- data.frame(x = 1:10, y = 1:10)
+ggplot(data, aes(x, y)) + geom_point()
+```
+
+```{r}
+# Datos de ejemplo
+data <- data.frame(
+  Nombre = c("Juan", "María", "Carlos", "Ana", "Luis"),
+  Edad = c(25, 32, 45, 28, 37),
+  Puntuación = c(78, 92, 64, 85, 71)
+)
+
+# Mostrar los datos en una tabla
+knitr::kable(data)
+```

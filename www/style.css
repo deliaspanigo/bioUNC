@@ -1,0 +1,10 @@
+/* Estilo para el verbatimTextOutput personalizado */
+.mi-clase-css {
+    background-color: #f2f2f2; /* Fondo gris claro */
+      border: 1px solid #ccc; /* Borde gris claro */
+    padding: 10px; /* Relleno interno */
+      color: #333; /* Color de texto */
+      font-family: Arial, sans-serif; /* Fuente */
+      font-size: 16px; /* Tamaño de fuente */
+      line-height: 1.4; /* Espacio entre líneas */
+}

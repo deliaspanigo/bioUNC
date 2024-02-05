@@ -1,0 +1,27 @@
+{
+    "id": "3FD07802",
+    "path": "~/MyGitHub/bioUNC/modules_all_OK.R",
+    "project_path": "modules_all_OK.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1698770638015.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "tempName": "Untitled14",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "2,32",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1699795878,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1699795878927,
+    "read_only": false,
+    "read_only_alternatives": []
+}

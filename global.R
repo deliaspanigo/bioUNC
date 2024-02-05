@@ -1,0 +1,29 @@
+# # # # # Rscience
+
+# Librerias
+library("shiny")
+library("shinyjs")
+library("shinydashboard")
+library("openxlsx")  # Para archivos XLSX
+library("stringr")
+
+library("tools")
+library("rmarkdown")
+library("Hmisc")
+
+# # # # #
+
+# # # # #
+source(file = "database_example_OK.R")
+source(file = "modules_all_OK.R")
+source(file = "functions_OK.R")
+
+
+
+##################################################################################################
+
+
+
+
+
+

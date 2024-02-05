@@ -1,0 +1,7 @@
+
+aver <- c("asdas-asdasd", "asdadas-dfgdfg", NA)
+
+sapply(aver, function(x){
+  
+  strsplit(x, "-")[[1]][2]
+}) 

@@ -1,0 +1,12 @@
+name: Ancova_UNC002
+title: Ancova_UNC002
+username: glakvax
+account: glakvax
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10370237
+bundleId: 7941504
+url: https://glakvax.shinyapps.io/Ancova_UNC002/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
