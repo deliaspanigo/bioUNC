@@ -1,0 +1,62 @@
+---
+title: "Documento HTML desde R Markdown"
+output: html_document
+---
+
+  # Este es un documento de Word generado desde R Markdown
+
+  Aquí tienes un párrafo de texto.
+
+```{r, echo=FALSE, message=FALSE}
+# Código R para generar una tabla de ejemplo
+
+rm(list = ls())
+source("global.R")
+```
+
+
+```{r}
+# Código R para generar una tabla de ejemplo
+
+rm(list = ls())
+source("global.R")
+
+database <- mtcars
+name_var_vr <- "mpg"
+name_var_factor <- "cyl"
+alpha_value <- 0.05
+
+
+obj_name_proccesing_order <- function(selected_fn){
+
+  # Obtiene el código fuente de la función
+  codigo_fuente <- deparse(body(lm))
+
+  # Busca y selecciona las líneas que contienen "<- data.frame("
+  lineas_seleccionadas <- codigo_fuente
+  lineas_seleccionadas <- grep("<-", lineas_seleccionadas, value = TRUE)
+  lineas_seleccionadas <- grep("\\$.*<-", lineas_seleccionadas, value = TRUE, invert = TRUE)
+
+
+  #  lineas_seleccionadas <- gsub(" ", "", lineas_seleccionadas)
+  lineas_seleccionadas <- trimws(lineas_seleccionadas)
+
+  lineas_seleccionadas <- grep("\\).*<-", lineas_seleccionadas, value = TRUE, invert = TRUE)
+  lineas_seleccionadas <- grep("\\].*<-", lineas_seleccionadas, value = TRUE, invert = TRUE)
+
+  #  lineas_seleccionadas <- grep("\\$", lineas_seleccionadas, value = TRUE, invert = TRUE)
+  lineas_seleccionadas <- sub(" <-.*", "", lineas_seleccionadas)
+  lineas_seleccionadas <- grep("^hide_", lineas_seleccionadas, value = TRUE, invert = TRUE)
+
+
+  obj_order_names <- lineas_seleccionadas
+
+  return(obj_order_names)
+
+}
+
+all_aca <- anova_full_gen01(database, name_var_vr, name_var_factor, alpha_value)
+
+all_aca
+```
+

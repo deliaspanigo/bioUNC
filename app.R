@@ -50,12 +50,14 @@ ui <- dashboardPage(
 
 
     tabItems(
-      # First tab content
-      tabItem(tabName = "database_rscience", module_database_rscience_ui(id = space_database)),
+      # 1) Data base selection
+      tabItem(tabName = "database_rscience",
+              module_database_rscience_ui(id = space_database)),
 
+      # 2) ANOVA
       tabItem(tabName = "tab_anova_1_way_rscience",
-              module_anova_varselection_ui(id = "anova01"),
-              module_anova_rscience_ui(id = "anova02")
+              module_anova_01_varselection_ui(id = "anova01"),
+              module_anova_02_rscience_ui(id = "anova02")
       ),
 
       tabItem(tabName = "tab_anova_2_way_rscience", "Anova bifactorial aquí!"),
@@ -83,18 +85,22 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
 
-
+  # # # Initial inputs
+  # - all_var_names()
+  # - database
   initial_inputs <- module_database_rscience_server(id = space_database)
 
 
+  # # # Vars selection for anova
+  # - "var_name_vr", "var_name_factor", "alpha_value"
+  selected_vars_anova <- module_anova_01_varselection_server(id = "anova01",
+                              all_var_names = reactive(initial_inputs()$all_var_names))
 
-  selected_vars_anova <- module_anova_varselection_server(id = "anova01",
-                                                          all_var_names = reactive(initial_inputs()$all_var_names))
 
 
-
-  module_anova_rscience_server(id = "anova02", database = reactive(initial_inputs()$database),
-                                selected_vars_anova = selected_vars_anova)
+  module_anova_02_rscience_server(id = "anova02", database = reactive(initial_inputs()$database),
+                                selected_vars_anova = selected_vars_anova,
+                                all_var_names = reactive(initial_inputs()$all_var_names))
 
 
 

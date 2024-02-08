@@ -3,7 +3,7 @@ vector_show_vars_anova <- c("VR" = T, "FACTOR" = T, "id_database" = T, "id_minib
 vector01_anova <- c("Seleccionar fuente" = "","R-science examples" = "example", "xlsx" = "xlsx")
 vector02_anova <- c("Seleccionar base" = "", "mtcars_mod", "iris_mod", "mtcars", "iris")
 
-module_anova_varselection_ui <- function(id){
+module02_anova_s01_varselection_ui <- function(id){
 
   ns <- shiny::NS(id)
 
@@ -13,7 +13,7 @@ module_anova_varselection_ui <- function(id){
 }
 
 
-module_anova_varselection_server <- function(id, all_var_names){
+module02_anova_s01_varselection_server <- function(id, all_var_names){
   moduleServer(
     id,
     function(input, output, session) {
@@ -176,7 +176,7 @@ module_anova_varselection_server <- function(id, all_var_names){
 }
 
 
-module_anova_rscience_ui <- function(id){
+module02_anova_02_rscience_ui <- function(id){
   ns <- shiny::NS(id)
 
   new_name <- "Requeriments"
@@ -198,39 +198,22 @@ module_anova_rscience_ui <- function(id){
 
   ) # End div
 }
-module_anova_rscience_server <- function(id, database, selected_vars_anova){
+
+
+module02_anova_02_rscience_server <- function(id, input_general, input_01_anova){
   moduleServer(
     id,
     function(input, output, session) {
 
-  #    observe(print(selected_vars_anova()))
-  #observe(print(selected_vars_anova()$var_name_vr))
+  # Input general
+      database <- reactive(input_general()$database)
+      all_var_names <- reactive(input_general()$all_var_names)
 
-  var_name_vr <- reactive(selected_vars_anova()$var_name_vr)
-  var_name_factor <- reactive(selected_vars_anova()$var_name_factor)
-  alpha_value <- reactive(selected_vars_anova()$alpha_value)
+  # Input 01 - Anova
+    var_name_vr <- reactive(input_01_anova()$var_name_vr)
+    var_name_factor <- reactive(input_01_anova()$var_name_factor)
+    alpha_value <- reactive(input_01_anova()$alpha_value)
 
-   #   var_name_vr <- reactive(1)
-    #  var_name_factor <- reactive(2)
-    #  alpha_value <- reactive(0.05)
-
-      # observe(print(var_name_vr()))
-      #var_name_vr <- reactive(selected_vars_anova()$var_name_vr)
-      #var_name_factor <- reactive(selected_vars_anova()$var_name_factor)
-
-
-      # Reactive - selected colname vars
-      selected_pos_vars <- reactive({
-
-        req(control02_vars_selection())
-        #    req(input$var_vr, input$var_factor, input$var_cov)
-        #    req(input$var_vr != "", input$var_factor != "", input$var_cov != "")
-
-        vector_pos <- c(var_name_vr(), var_name_factor())
-        vector_pos <- as.integer(as.numeric(vector_pos))
-        names(vector_pos) <- c("VR", "FACTOR")
-        vector_pos
-      })
 
 
       # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -240,14 +223,13 @@ module_anova_rscience_server <- function(id, database, selected_vars_anova){
       results_all_anova <- reactive({
 
         req(control02_vars_selection())
-        the_output <- anova_full_gen02(database = database(),
-                                       pos_var_vr = selected_pos_vars()[1],
-                                       pos_var_factor = selected_pos_vars()[2],
+        the_output <- anova_full_gen01(database = database(),
+                                       name_var_vr = name_var_vr(),
+                                       name_var_factor = name_var_factor,
                                        alpha_value = alpha_value())
 
 
-        #the_output <- do.call(c, the_output)
-        #the_output <- unlist(the_output)
+
 
         the_output
 
@@ -304,7 +286,7 @@ module_anova_rscience_server <- function(id, database, selected_vars_anova){
 
         div(
         radioButtons(inputId = ns("show_results"), label = "Show results",
-                     choices = c("Short" = "short", "Large" = "large"), selected = "short"),
+                     choices = c("Short" = "short", "Large" = "large"), selected = "large"),
         shiny::tabsetPanel(id = ns("super_tabset_panel"),
            tabPanel("Analysis",  # 05
                    fluidRow(
@@ -621,10 +603,9 @@ module_anova_rscience_server <- function(id, database, selected_vars_anova){
 
 
         # Vector con nombres de elementos a ver
-        nombres_a_ver <- c("test_normality_residuals",
-                           "test_homogeneity_residuals",
-                           "mean_residuals",
-                           "df_dispersion_residuals_levels")
+        nombres_a_ver <- c("test_residuals_normality",
+                           "test_residuals_homogeneity",
+                           "df_residuals_variance_levels")
 
         # Usar lapply para mostrar los elementos deseados
         elementos_a_ver <- lapply(nombres_a_ver, function(nombre) mi_lista[[nombre]])
@@ -764,16 +745,17 @@ module_anova_rscience_server <- function(id, database, selected_vars_anova){
 
       # # # # Tab 08 - code...
       code_anova <- reactive({
-        req(input$file_source)
+        #req(input$file_source)
 
+        #"HOAL"
         #
         list_code <- list()
 
-        list_code[[1]] <- anova_general_section01_to_03(file_source = input$file_source,
+        list_code[[1]] <- anova_general_section01_to_03(file_source = "asdasdasdas.xlsx", #input$file_source,
                                                         alpha_value = "0.05", selected_path = NULL,
                                                         selected_pos_vars = selected_pos_vars(),
                                                         name_database = input$file_example,
-                                                        all_colnames = all_colnames())
+                                                        all_colnames = all_var_names())
 
 
         codigo_fuente <- capture.output(anova_full_gen01)
@@ -787,6 +769,8 @@ module_anova_rscience_server <- function(id, database, selected_vars_anova){
         the_code <- unlist(list_code)
         the_code <- paste0(the_code, collapse = "\n\n\n")
         the_code
+
+
       })
 
       output$code_anova <- renderText({
@@ -794,7 +778,7 @@ module_anova_rscience_server <- function(id, database, selected_vars_anova){
 
         code_anova()
 
-
+        #  "HOLA 2"
       })
 
 

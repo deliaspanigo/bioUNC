@@ -118,6 +118,10 @@ anova_general_section01_to_03 <- function(file_source, alpha_value,
   library(plotly)    # Advanced graphical functions
   '
 
+  the_code <- section01_general_libreries
+
+  return(the_code)
+  if (FALSE){
   if(file_source == "xlsx"){
 
     if(is.null(selected_path)) return(NULL)
@@ -212,11 +216,12 @@ anova_general_section01_to_03 <- function(file_source, alpha_value,
     the_code_example <- gsub(pattern = "_name_database_", replacement = name_database, x = the_code_example)
     return(the_code_example)
   }
-
+  }
 
 
   #################################################################################
 
+if (FALSE){
   the_code_02_example <- '
 # # # Section 02 - Operator specifications ------------------------------------------
   # Alpha value
@@ -228,44 +233,92 @@ anova_general_section01_to_03 <- function(file_source, alpha_value,
   # Importar base
   database <- _name_database_
 '
-
-  if(file_source == "xlsx")
-    the_code <- c(the_code_01_libreries, the_code_02_xlsx)
+  the_code <- section01_general_libreries
   the_code <- paste0(the_code, collapse = "\n\n\n")
-
   the_code <- gsub(pattern = "_alpha_value_", replacement = alpha_value, x = the_code)
   the_code <- gsub(pattern = "_selected_path_", replacement = selected_path, x = the_code)
 
+  return(the_code)
+
+}
 }
 
 
 
-anova_full_gen01 <- function(database, pos_var_vr, pos_var_factor, alpha_value){
+obj_proc_order_names <- function(selected_fn){
+
+  selected_code <- deparse(body(selected_fn))
+  selected_code <- grep("<-", selected_code, value = TRUE)
+  selected_code <- trimws(selected_code)
+  selected_code <- gsub("\\s", "", selected_code)
+  selected_code <- sub("<-.*", "", selected_code)
+  selected_code <- grep("^[a-zA-Z0-9._]*$", selected_code, value = TRUE)
+  selected_code <- grep("^hide", selected_code, value = TRUE, invert = TRUE)
+  selected_code <- unique(selected_code)
+
+  return(selected_code)
+
+}
+
+showme_your_code <- function(selected_fn){
+
+  codigo_fuente <- capture.output(selected_fn)
+  codigo_fuente <- codigo_fuente[-1]
+  codigo_fuente <- codigo_fuente[-length(codigo_fuente)]
+  codigo_fuente <- grep("hide_", codigo_fuente, value = TRUE, invert = TRUE)
+  codigo_fuente <- paste0(codigo_fuente , collapse = "\n")
+
+  codigo_fuente
+}
+
+anova_full_gen01 <- function(database, name_var_vr, name_var_factor, alpha_value){
 
 
 
-  selected_pos_vars <- c(pos_var_vr, pos_var_factor)
-  selected_role_vars <- c("VR", "FACTOR")
-  selected_name_vars <- colnames(database)[selected_pos_vars]
-  selected_doble_reference_var <- paste0(selected_role_vars, "(", selected_name_vars, ")")
 
+  # # # # Inputs de la futura funcion de anova
+  # database <- mtcars
+  # name_var_vr <- "mpg"
+  # name_var_factor <- "cyl"
+  # alpha_value <- 0.05
+
+  #################################################################################
+
+
+  # # # Information on vectors
+  vector_all_var_names <- colnames(database)
+  vector_name_selected_vars <- c(name_var_vr, name_var_factor)
+  vector_rol_vars <- c("VR", "FACTOR")
+
+
+  #################################################################################
+
+
+
+  # # # Selected vars info - dataframe
   df_selected_vars <- data.frame(
-    "order" = 1:length(selected_pos_vars),
-    "var_name" = colnames(database)[selected_pos_vars],
-    "var_number" = selected_pos_vars,
-    "var_letter" = openxlsx::int2col(selected_pos_vars),
-    "var_role" = selected_role_vars,
-    "doble_reference" = selected_doble_reference_var
+    "order" = 1:length(vector_name_selected_vars),
+    "var_name" = vector_name_selected_vars,
+    "var_number" = match(vector_name_selected_vars, vector_all_var_names),
+    "var_letter" = openxlsx::int2col(match(vector_name_selected_vars, vector_all_var_names)),
+    "var_role" = vector_rol_vars,
+    "doble_reference" = paste0(vector_rol_vars, "(", vector_name_selected_vars, ")")
   )
 
-  # Minibase
-  minibase <- na.omit(database[selected_pos_vars])
-  colnames(minibase) <- selected_role_vars
-  minibase[,2] <- as.factor(minibase[,2])
-  colnames(minibase) <- selected_role_vars
 
+
+  # # # Anova minibase
+  # Only selected vars. Only completed rows. Factor columns as factor object in R.
+  minibase <- na.omit(database[vector_name_selected_vars])
+  colnames(minibase) <- vector_rol_vars
+  minibase[,2] <- as.factor(minibase[,2])
+
+
+
+  # # # Anova control
+  # 'VR' must be numeric and 'FACTOR must be factor.
   df_control_minibase <- data.frame(
-    "order" = 1:length(selected_role_vars),
+    "order" = 1:nrow(df_selected_vars),
     "var_name" = df_selected_vars$var_name,
     "var_role" = df_selected_vars$var_role,
     "control" = c("is.numeric()", "is.factor()"),
@@ -273,6 +326,8 @@ anova_full_gen01 <- function(database, pos_var_vr, pos_var_factor, alpha_value){
   )
 
 
+  # # # database and minibase reps
+  # Our 'n' is from minibase
   df_show_n <- data.frame(
     "object" = c("database", "minibase"),
     "n_col" = c(ncol(database), ncol(minibase)),
@@ -280,19 +335,118 @@ anova_full_gen01 <- function(database, pos_var_vr, pos_var_factor, alpha_value){
   )
 
 
-  df_factor <- data.frame(
+  # # # Factor info
+  # Default order for levels its alphabetic order.
+  df_factor_info <- data.frame(
     "order" = 1:nlevels(minibase[,2]),
     "level" = levels(minibase[,2]),
     "n" = as.vector(table(minibase[,2])),
+    "mean" = tapply(minibase[,1], minibase[,2], mean),
     "color" = rainbow(nlevels(minibase[,2]))
   )
 
-  dt_unbalanced_reps <- length(unique(df_factor$n)) > 1
+  # # # Unbalanced reps for levels?
+  # Important information for Tukey.
+  # If reps its equal or not equal in all levels must be detailled
+  # on Tukey.
+  check_unbalanced_reps <- length(unique(df_factor_info$n)) > 1
+
+
+
+
+  # # # Anova Test
+  lm_anova <- lm(VR ~ FACTOR, data = minibase)            # Linear model
+  aov_anova <- aov(lm_anova)                              # R results for anova
+  table_anova <- as.data.frame(summary(aov_anova)[[1]])   # Common anova table
+  table_anova
+
+
+
+
+
+  # # # Creation:  minibase_mod
+  # # Detect rows on database there are on minibase
+  dt_rows_database_ok <- rowSums(!is.na(database[vector_name_selected_vars])) == ncol(minibase)
+
+  # # Object minibase_mod and new cols
+  minibase_mod <- minibase
+  minibase_mod$"lvl_order_number" <- as.numeric(minibase_mod[,2])
+  minibase_mod$"lvl_color" <- df_factor_info$color[minibase_mod$"lvl_order_number"]
+  minibase_mod$"fitted.values" <- df_factor_info$"mean"[minibase_mod$"lvl_order_number"]
+  minibase_mod$"residuals" <- lm_anova$residuals
+  minibase_mod$"id_database" <- c(1:nrow(database))[dt_rows_database_ok]
+  minibase_mod$"id_minibase" <- 1:nrow(minibase)
+
+
+
+
+
+
+  # # # Residuals requeriments
+  # # Normality test (Shapiro-Wilk)
+  test_residuals_normality <- shapiro.test(minibase_mod$residuals)
+  test_residuals_normality
+
+  # # Homogeinidy test (Bartlett)
+  test_residuals_homogeneity <- bartlett.test(residuals ~ FACTOR, data = minibase_mod)
+  test_residuals_homogeneity
+
+
+  # Medidas de dispersion particionadas  (residuals)
+  df_residuals_variance_levels <- data.frame(
+    "order" = 1:nlevels(minibase_mod[,2]),
+    "level" = levels(minibase_mod[,2]),
+    "variance" = tapply(minibase_mod$residuals, minibase_mod[,2], var),
+    "n" = tapply(minibase_mod$residuals, minibase_mod[,2], length)
+  )
+
+  # # Sum for residuals
+  sum_residuals <- sum(minibase_mod$residuals)
+  sum_residuals
+
+  # # Mean for residuals
+  mean_residuals <- mean(minibase_mod$residuals)
+  mean_residuals
+
+
+
+
+  # # # Tukey test
+  # # Tukey with groups - Full version
+  tukey01_full_groups <- agricolae::HSD.test(y = lm_anova,
+                                             trt = colnames(minibase)[2],
+                                             alpha = alpha_value,
+                                             group = TRUE,
+                                             console = FALSE,
+                                             unbalanced = check_unbalanced_reps)
+
+  # # Tukey pairs comparation - Full version
+  tukey02_full_pairs <- agricolae::HSD.test(y = lm_anova,
+                                            trt = colnames(minibase)[2],
+                                            alpha = alpha_value,
+                                            group = FALSE,
+                                            console = FALSE,
+                                            unbalanced = check_unbalanced_reps)
+
+
+  df_tukey_original_table <- tukey01_full_groups$groups
+  df_tukey_original_table
+
+
+  df_tukey_new_table <- data.frame(
+    "level" = rownames(tukey01_full_groups$groups),
+    "mean" = tukey01_full_groups$groups[,1],
+    "group" = tukey01_full_groups$groups[,2]
+  )
+
+  df_tukey_new_table
+
+
 
   #####################################################################################
 
-  # Medidas de posicion particionadas (VR)
-  df_position_vr_levels <- data.frame(
+  # Partitioned Measures of Position (VR)
+  df_vr_position_levels <- data.frame(
     "order" = 1:nlevels(minibase[,2]),
     "level" = levels(minibase[,2]),
     "min" = tapply(minibase[,1], minibase[,2], min),
@@ -304,8 +458,8 @@ anova_full_gen01 <- function(database, pos_var_vr, pos_var_factor, alpha_value){
 
 
 
-  # Medidas de dispersion particionadas (VR)
-  df_dispersion_vr_levels <- data.frame(
+  # Partitioned Measures of Dispersion (VR)
+  df_vr_dispersion_levels <- data.frame(
     "order" = 1:nlevels(minibase[,2]),
     "level" = levels(minibase[,2]),
     "range" = tapply(minibase[,1], minibase[,2], function(x){max(x) - min(x)}),
@@ -316,8 +470,8 @@ anova_full_gen01 <- function(database, pos_var_vr, pos_var_factor, alpha_value){
   )
 
 
-  # Medidas de posicion particionadas (VR)
-  df_position_vr_general <- data.frame(
+  # General Measures of Position (VR)
+  df_vr_position_general <- data.frame(
     "min" = min(minibase[,1]),
     "mean" = mean(minibase[,1]),
     "median" = median(minibase[,1]),
@@ -327,8 +481,8 @@ anova_full_gen01 <- function(database, pos_var_vr, pos_var_factor, alpha_value){
 
 
 
-  # Medidas de dispersion particionadas (VR)
-  df_dispersion_vr_general <- data.frame(
+  # General Measures of Dispersion (VR)
+  df_vr_dispersion_general <- data.frame(
     "range" = max(minibase[,1]) - min(minibase[,1]),
     "variance" = var(minibase[,1]),
     "standard_deviation" = sd(minibase[,1]),
@@ -340,34 +494,8 @@ anova_full_gen01 <- function(database, pos_var_vr, pos_var_factor, alpha_value){
   #########################################################################################
 
 
-  # Analisis
-  lm_anova <- lm(VR ~ FACTOR, data = minibase)
-  aov_anova <- aov(lm_anova)
-  table_anova <- as.data.frame(summary(aov_anova)[[1]])
-
-
-
-
-  ######################################################################################
-
-  dt_rows_database_ok <- rowSums(is.na(database[selected_pos_vars])) == 0
-
-
-  minibase_mod <- minibase
-#  minibase_mod$"fitted.values" <- lm_anova$fitted.values
-  minibase_mod$"fitted.values" <- df_position_vr_levels$"mean"[as.numeric(minibase[,2])]
-  minibase_mod$"residuals" <- lm_anova$residuals
-  minibase_mod$"id_database" <- c(1:nrow(database))[dt_rows_database_ok]
-  minibase_mod$"id_minibase" <- 1:nrow(minibase)
-  minibase_mod$"lvl_order_number" <- as.numeric(minibase[,2])
-  minibase_mod$"lvl_color" <- df_factor$color[minibase_mod$"lvl_order_number"]
-
-
-
-  ######################################################################################
-
-  # Medidas de posicion particionadas (residuals)
-  df_position_residuals_levels <- data.frame(
+  # Partitioned Measures of Position (residuals)
+  df_residuals_position_levels <- data.frame(
     "order" = 1:nlevels(minibase_mod[,2]),
     "level" = levels(minibase_mod[,2]),
     "min" = tapply(minibase_mod$residuals, minibase_mod[,2], min),
@@ -379,8 +507,8 @@ anova_full_gen01 <- function(database, pos_var_vr, pos_var_factor, alpha_value){
 
 
 
-  # Medidas de dispersion particionadas  (residuals)
-  df_dispersion_residuals_levels <- data.frame(
+  # Partitioned Measures of Dispersion (residuals)
+  df_residual_dispersion_levels <- data.frame(
     "order" = 1:nlevels(minibase_mod[,2]),
     "level" = levels(minibase_mod[,2]),
     "range" = tapply(minibase_mod$residuals, minibase_mod[,2], function(x){max(x) - min(x)}),
@@ -392,8 +520,9 @@ anova_full_gen01 <- function(database, pos_var_vr, pos_var_factor, alpha_value){
 
 
 
-  # Medidas de posicion particionadas (residuals)
-  df_position_residuals_general <- data.frame(
+
+  # General Measures of Position (residuals)
+  df_residuals_position_general <- data.frame(
     "min" = min(minibase_mod$residuals),
     "mean" = mean(minibase_mod$residuals),
     "median" = median(minibase_mod$residuals),
@@ -403,8 +532,8 @@ anova_full_gen01 <- function(database, pos_var_vr, pos_var_factor, alpha_value){
 
 
 
-  # Medidas de dispersion particionadas (residuals)
-  df_dispersion_residuals_general <- data.frame(
+  # General Measures of Dispersion (residuals)
+  df_residuals_dispersion_general <- data.frame(
     "range" = max(minibase_mod$residuals) - min(minibase_mod$residuals),
     "variance" = var(minibase_mod$residuals),
     "standard_deviation" = sd(minibase_mod$residuals),
@@ -414,112 +543,37 @@ anova_full_gen01 <- function(database, pos_var_vr, pos_var_factor, alpha_value){
 
 
 
+  ######################################################################################
 
+  # # # Model
+  est_mu <- mean(df_vr_position_general$mean)
+  vector_est_mu_i <- df_vr_position_levels$mean
+  vector_est_mu <- rep(est_mu, nrow(df_vr_position_levels))
+  vector_est_tau_i <- vector_est_mu_i - vector_est_mu
 
-  # # # Seccion 09 - Requisitos del modelo de Ancova con interacción ------------------
-  # Test de Normalidad de Shapiro-Wilk
-  test_normality_residuals <- shapiro.test(minibase_mod$residuals)
-  test_normality_residuals
+  sum_est_tau_i <- sum(vector_est_tau_i)
 
-
-  test_homogeneity_residuals <- bartlett.test(residuals ~ FACTOR, data = minibase_mod)
-  test_homogeneity_residuals
-
-
-  sum_residuals <- sum(minibase_mod$residuals)
-  sum_residuals
-
-  mean_residuals <- mean(minibase_mod$residuals)
-  mean_residuals
-
-  # # Sección 09-2) Tabla Tukey --------------------------------------------------
-  # Tukey completo
-  tukey01_full_groups <- agricolae::HSD.test(y = lm_anova,
-                                             trt = colnames(minibase)[2],
-                                             alpha = alpha_value,
-                                             group = TRUE,
-                                             console = FALSE,
-                                             unbalanced = dt_unbalanced_reps)
-
-  tukey02_full_pairs <- agricolae::HSD.test(y = lm_anova,
-                                            trt = colnames(minibase)[2],
-                                            alpha = alpha_value,
-                                            group = FALSE,
-                                            console = FALSE,
-                                            unbalanced = dt_unbalanced_reps)
-
-
-  ########################################################
-
-  vector_mean_vr_levels <- tukey01_full_groups$means[,1]
-  names(vector_mean_vr_levels) <- rownames(tukey01_full_groups$means)
-
-  mean_of_means_vr <- mean(vector_mean_vr_levels)
-  vector_mean_of_means_vr <- rep(mean_of_means_vr, length(vector_mean_vr_levels))
-  names(vector_mean_of_means_vr) <- names(vector_mean_vr_levels)
-
-  vector_tau_vr_levels <- vector_mean_vr_levels - mean_of_means_vr
-  names(vector_tau_vr_levels) <- names(vector_mean_vr_levels)
-
-  df_factorial_effects <- data.frame(
-    "order" = 1:length(vector_mean_vr_levels),
-    "level" = names(vector_mean_vr_levels),
-    "mu" = vector_mean_of_means_vr,
-    "tau_i" = vector_tau_vr_levels,
-    "mu_i" = vector_mean_vr_levels,
-    "groups" = tukey01_full_groups$groups$groups
+  df_anova_model_long <- data.frame(
+    "order" = df_factor_info$order,
+    "level" = df_factor_info$level,
+    "n" = df_factor_info$n,
+    "est_mu" = vector_est_mu,
+    "est_tau_i" = vector_est_tau_i
   )
 
 
-  df_tukey_means <- data.frame(
-    "order" = 1:length(vector_mean_vr_levels),
-    "level" = names(vector_mean_vr_levels),
-    "mean" = vector_mean_vr_levels,
-    "groups" = tukey01_full_groups$groups$groups
-  )
-
-  df_tukey_effects <- data.frame(
-    "order" = 1:length(vector_mean_vr_levels),
-    "level" = names(vector_mean_vr_levels),
-    "tau_i" = vector_tau_vr_levels,
-    "groups" = tukey01_full_groups$groups$groups
+  df_anova_model_short <- data.frame(
+    "order" = df_factor_info$order,
+    "level" = df_factor_info$level,
+    "n" = df_factor_info$n,
+    "est_mu_i" = vector_est_mu_i
   )
 
 
 
-  # Suma de los efectos tau
-  sum_tau <- sum(vector_tau_vr_levels)
-  sum_tau
-
-
-
-
-
-  # # Sección 09-6) Tabla con estimaciones del modelo de Ancova (modelo largo) ---
-
-  df_resumen_anova_large <- data.frame(
-    "order" = df_factorial_effects$order,
-    "level" = df_factorial_effects$level,
-    "mu" = df_factorial_effects$mu,
-    "tau_i" = df_factorial_effects$tau_i
-  )
-
-
-
-  df_resumen_anova_short <- data.frame(
-    "order" = df_factorial_effects$order,
-    "level" = df_factorial_effects$level,
-    "mu_i" = df_factorial_effects$mu_i
-  )
-
-
-
-
-  # hide_: all objects in the internal envirorment
-  hide_all_objets <- ls()
-
-  # hide_: All in a output list
-  hide_output_list_objects <- sapply(hide_all_objets, function(list_name) { get(list_name)  }, simplify = FALSE)                                                    # HIDE
+  # hide_: Proccesing objects order
+  hide_correct_order <- obj_proc_order_names(selected_fn = anova_full_gen01)
+  hide_output_list_objects <- mget(hide_correct_order)
 
   # hide_: return!
   return(hide_output_list_objects)
