@@ -8,31 +8,26 @@ module01_database_s01_excel_ui <- function(id){
 
   div(shinyjs::useShinyjs(), id = ns("input-panel"),
 
-      h2("Initial user election - database"),
+      #h2("Initial user election - database"),
+      # div(shinyjs::useShinyjs(), id = ns("input-xlsx"),
+
+      div(shinyjs::useShinyjs(), id = ns("input-xlsx"),
       fluidRow(
         column(2,
-
-             # # # For xlsx files...
-             div(shinyjs::useShinyjs(), id = ns("input-xlsx"),
-                              fileInput(inputId = ns("info_xlsx"),
-                                        label = "File '.xlsx' selection..."),
-                              uiOutput(ns("sheet_selection"))
-             )
-        ),
-
+               fileInput(inputId = ns("info_xlsx"),
+                         label = "File '.xlsx' selection...")
+               ),
+        column(2, uiOutput(ns("sheet_selection"))),
+        column(2),
 
         # # # Action buttons
-        column(6, br(), uiOutput(ns("action_buttons")))
-      ),  br(), br(),
-
+        column(2, br(), br(), uiOutput(ns("action_buttons")))
+      )
+      ),
+    br(), br(), br(),
     # End fluidRow
 
-    # # # Visualization for database
-    fluidRow(
-
-      column(12, tableOutput(ns("df_database")))
-
-      )
+    uiOutput(ns("show_all_database"))
 
   ) # End div
 }
@@ -394,48 +389,133 @@ module01_database_s01_excel_server <- function(id){
 
 
 
-      # observeEvent(action_button_load(), {
-      #
-      #   #req(action_button_show())
-      #   print("AAA")
-      #   print(is.null(control02_post_database()))
-      #   print(control02_post_database())
-      #   print("BBB")
-      #
-      #
-      #     if(action_button_show()) color_button_load("green") else
-      #       if(!control02_post_database() && !action_button_show()) color_button_load("red") else
-      #         if(is.null(control02_post_database()) && !action_button_show()) color_button_load("red")
-      #
-      #
-      # })
+     # , rownames = TRUE, align = "c"
+      output$df_database <- renderDataTable({
 
 
-
-
-      output$df_database <- renderTable({
-
-
-        req(control02_post_database(), action_button_show(), database())
+        req(action_button_show(), intro_source_database(), database())
 
         database()
         #mtcars
-      }, rownames = TRUE, align = "c")
+      })
+
+
+
+
+      # # # More objects
+      # # Vector with var names from database
+      vector_var_names_database <- reactive({
+
+       req(database(), action_button_show())
+       colnames(database())
+     })
+
+      # # File name form database
+      file_name_database <- reactive({
+
+        req(database(), action_button_show())
+        selected_info_xlsx()$name
+
+      })
+
+
+      file_size_database <- reactive({
+
+        req(database(), action_button_show())
+        info_size <- object.size(database())
+        info_size <- as.character(info_size)
+        info_size
+      })
 
 
 
 
 
+      # # Intro for source data (its information)
+      intro_source_database <- reactive({
 
-      # # # # INTERNAL CONTROLS
-      # Control 01 - database
-      control01_database <- reactive({
+       req(action_button_show(), database())
 
-        dt_database <- is.null(database())
+        text_list <- list(
+          paste0("File source: '.xlsx' user file."),
+          paste0("File name: ", file_name_database()),
+          paste0("Total sheets: ", length(sheets_xlsx())),
+          paste0("Full file size: ", selected_info_xlsx()$size),
+          paste0("Selected sheet name: ", input$sheet_xlsx),
+          paste0("Selected sheet size: ", file_size_database()),
+          paste0("Cols: ", ncol(database())),
+          paste0("Rows: ", nrow(database()))
+        )
+
+        text_list
+
+     })
+
+      intro_source_database2 <- reactive({
+
+        req(action_button_show(), database())
+
+        text_list <- list(
+          "File source" = "User file '.xlsx'",
+          "File name" = file_name_database(),
+          #"Total sheets", length(sheets_xlsx()),
+          #"Full file size", selected_info_xlsx()$size,
+          "Selected sheet name" = input$sheet_xlsx,
+          #"Selected sheet size", file_size_database(),
+          "Cols" = ncol(database()),
+          "Rows" =  nrow(database())
+        )
+
+        text_list
+
+      })
+
+      output$intro_source_database <- renderText({
+
+        req(action_button_show(), intro_source_database(), database())
 
 
-        if(dt_database) return(FALSE) else return(TRUE)
+        contenido_texto <- paste(intro_source_database(), collapse = "<br>")
 
+
+
+      })
+
+
+      output$tabla02 <- renderTable({
+
+        req(action_button_show(), intro_source_database(), database())
+
+
+        as.data.frame(intro_source_database2())
+
+
+
+      })
+
+      output$show_all_database <- renderUI({
+
+        ns <- shiny::NS(id)
+
+        req(action_button_show(), intro_source_database(), database())
+
+      div(
+      fluidRow( column(12,
+                       h2("Database details"),
+                       tags$div(
+                         style = "font-size: 30px;",
+                         tableOutput(ns("tabla02"))))),
+      fluidRow( column(12,
+                       h2("Database details"),
+                       tags$div(
+                         style = "font-size: 30px;",
+                         htmlOutput(ns("intro_source_database"))))),
+      br(), br(), br(),
+      fluidRow(column(12,
+                      h2("Database"),
+                      dataTableOutput(ns("df_database")))
+      )
+      )
 
       })
 
@@ -443,61 +523,32 @@ module01_database_s01_excel_server <- function(id){
 
 
 
+      # # # Output!
+      output_list <- reactive({
 
-
-
-
-
-     all_var_names <- reactive({
-
-       req(database(), action_button_show())
-       colnames(database())
-     })
-
-
-
-     intro_source_data <- reactive({
-
-       req(database(), action_button_show())
-
-       out_detail <- paste0("Excel file - ", selected_info_xlsx()$name)
-       out_detail
-     })
-
-     xlsx_file_name <- reactive({
-
-       req(database(), action_button_show())
-       selected_info_xlsx()$name
-
-     })
-
-     output_list <- reactive({
-
-       req(database(),
+        # Requerimets...
+        req(database(),
            action_button_show(),
-           all_var_names(), intro_source_data(), xlsx_file_name())
+           vector_var_names_database(), file_name_database(),
+           file_size_database(), intro_source_database()
+          )
 
 
+        # Final list
+        the_list <- list(database(), vector_var_names_database(), file_name_database(),
+                        file_size_database(), intro_source_database())
 
-       the_list <- list(all_var_names(), database(), intro_source_data(), xlsx_file_name())
+        # Names for final list objects
+       names(the_list) <- c("database", "vector_var_names_database", "file_name_database",
+                            "file_size_database", "intro_source_database")
 
-       names(the_list) <- c("all_var_names", "database", "info_source_data", "xlsx_file_name")
-
+       # Return...
        return(the_list)
        })
 
 
 
-     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-      # # # # Tab 01 - database
-
-
-
-
-
-
-
+    # Module - Final Return
     return(output_list)
 
 

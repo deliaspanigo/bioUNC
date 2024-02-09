@@ -11,7 +11,7 @@ module01_database_s02_example_ui <- function(id){
 
   div(shinyjs::useShinyjs(), id = ns("input-panel"),
 
-      h2("Initial user election - database"),
+      # h2("Initial user election - database"),
       fluidRow(
         column(2,
 
@@ -23,19 +23,15 @@ module01_database_s02_example_ui <- function(id){
 
                ) # Div
         ),
-
+        column(2),
         # # # Action buttons
-        column(6, br(), uiOutput(ns("action_buttons")))
+        column(4, br(), br(), uiOutput(ns("action_buttons")))
 
       ), # End fluidRow
-      br(), br(),
+      br(), br(), br(),
 
       # # # Visualization for database
-      fluidRow(
-
-        column(12, tableOutput(ns("df_database")))
-
-      )
+      uiOutput(ns("show_all_database"))
 
   ) # End div
 }
@@ -245,31 +241,107 @@ module01_database_s02_example_server <- function(id){
 
 
 
-      all_var_names <- reactive({
+      vector_var_names_database <- reactive({
 
         req(database(), action_button_show())
         colnames(database())
       })
 
 
-      info_source_data <- reactive({
+
+
+      file_name_database <- reactive({
+        input$file_example
+      })
+
+
+      file_size_database <- reactive({
 
         req(database(), action_button_show())
-        #req(input$file_example)
-
-        out_detail <- paste0("R file - ", input$file_example)
-        out_detail
+        info_size <- object.size(database())
+        info_size <- as.character(info_size)
+        info_size
       })
+
+
+
+      # # Intro for source data (its information)
+      intro_source_database <- reactive({
+
+        req(action_button_show(), database())
+
+        text_list <- list(
+          paste0("File source: R example."),
+          paste0("File name: ", file_name_database()),
+          paste0("Database size: ", file_size_database()),
+          paste0("Cols: ", ncol(database())),
+          paste0("Rows: ", nrow(database()))
+        )
+
+        text_list
+
+      })
+
+
+      output$intro_source_database <- renderText({
+
+        req(action_button_show(), intro_source_database(), database())
+
+
+        contenido_texto <- paste(intro_source_database(), collapse = "<br>")
+
+
+
+      })
+
+
+
+
+      output$show_all_database <- renderUI({
+
+        ns <- shiny::NS(id)
+
+        req(action_button_show(), intro_source_database(), database())
+
+        div(
+          fluidRow( column(12,
+                           h2("Database details"),
+                           tags$div(
+                             style = "font-size: 30px;",
+                             htmlOutput(ns("intro_source_database"))))),
+          br(), br(), br(),
+          fluidRow(column(12,
+                          h2("Database"),
+                          tableOutput(ns("df_database")))
+          )
+        )
+
+      })
+
+
+
+
+
+
+
+
 
       output_list <- reactive({
 
-        req(database(), action_button_show(), all_var_names())
+        req(database(), action_button_show(),
+            vector_var_names_database(),
+            file_name_database(), file_size_database(),
+            intro_source_database())
 
 
 
-        the_list <- list(all_var_names(), database(), info_source_data())
+        the_list <- list(database(), vector_var_names_database(),
+                         file_name_database(), file_size_database(),
+                         intro_source_database())
 
-        names(the_list) <- c("all_var_names", "database", "info_source_data")
+        names(the_list) <- c("database", "vector_var_names_database",
+                             "file_name_database", "file_size_database",
+                             "intro_source_database")
 
         return(the_list)
       })

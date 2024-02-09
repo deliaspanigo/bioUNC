@@ -183,6 +183,7 @@ ui <- dashboardPage(
 
   # # # Sidebar content
   dashboardSidebar(
+    width = "300px",
     sidebarMenu(
       menuItem(text = "database", tabName = "tab01_database", icon = icon("th")),
       menuItem(text = "Anova 1 way", tabName = "tab02_anova", icon = icon("th"))
@@ -192,14 +193,44 @@ ui <- dashboardPage(
   # # # Body content
   dashboardBody(
 
-    # # # Tabpanel style
+
     tags$style(
-      "li a {
-        font-size: 15px;
-        font-weight: bold;
-      }
-    "
+      #HTML('.custom-h2 { font-weight: bold; }') # Estilos CSS para aplicar negrita solo a la clase custom-h2
+      #HTML('.custom-h2 { font-weight: bold; }') # Estilos CSS para aplicar negrita solo a la clase custom-h2
+    HTML(" h2 { font-weight: bold; }")
     ),
+
+    # # # Select Input setting...
+    tags$style(HTML('.selectize-input { font-size: 32px; line-height: 32px;}')), # Estilos CSS para aumentar el tamaño de letra
+    tags$style(HTML('.selectize-dropdown { font-size: 28px; line-height: 28px; }')), # Estilos CSS para aumentar el tamaño de letra
+    tags$style(HTML('.control-label { font-size: 28px; }')), # Estilos CSS para cambiar el tamaño de letra del label
+
+    # # # fileInput setting...
+    tags$style(HTML('.btn-file { font-size: 28px; }')), # Estilos CSS para cambiar el tamaño de letra del botón adjunto
+    #tags$style(HTML('.file-caption-name { width: 20px; height: 400px; font-size: 50px;}')), # Estilos CSS para cambiar el tamaño de la caja del nombre del archivo seleccionado
+
+
+    #tags$style(HTML('.btn-file { font-size: 28px; }')), # Estilos CSS para cambiar el tamaño de letra del botón adjunto
+
+    # tags$style(HTML('.selectize-input { font-size: 30px; }')), # Estilos CSS para aumentar el tamaño de letra
+    # tags$head(
+    #   tags$style(HTML('.selectize-control { font-size: 30px; }'))
+    # ),
+    # tags$style(HTML('.selectize-dropdown-content { padding: 20px; }')), # Estilos CSS para aumentar el espacio entre opciones
+    # tags$style(HTML('.selectize-input { margin-bottom: 0px; }')), # Estilos CSS para aumentar el espacio entre opciones
+
+    tags$style(
+      HTML('.sidebar-menu { font-size: 28px; }'),  # Cambiar el tamaño de letra del menú
+      HTML('.treeview-menu > li > a { font-size: 28px; }')  # Cambiar el tamaño de letra de los elementos del menú desplegable
+    ),
+    # # # Tabpanel style
+    # tags$style(
+    #   "li a {
+    #     font-size: 30px;
+    #     font-weight: bold;
+    #   }
+    # "
+    # ),
 
 
     # # # verbatimTextOutput style
@@ -218,11 +249,13 @@ ui <- dashboardPage(
     tabItems(
       # 1) Data base selection
       tabItem(tabName = "tab01_database",
+              h1("Import database"),
               selectInput(inputId = "file_source",
                           label = "File source...",
                           choices = c("Select a file source..." = "",
                                       "R examples" = "example",
                                       "xlsx" = "xlsx")),
+              br(),br(),br(),
 
               conditionalPanel(condition = 'input.file_source == "xlsx"',
                 module01_database_s01_excel_ui(id = "data_excel")

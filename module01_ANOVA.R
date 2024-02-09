@@ -21,17 +21,18 @@ module02_anova_s01_varselection_server <- function(id, input_general){
     function(input, output, session) {
 
       # # # Very importan objects from input_general
-      all_var_names <- reactive({
+      # # Vector var names from database
+      vector_var_names_database <- reactive({
         req(input_general())
 
-        input_general()$all_var_names
+        input_general()$vector_var_names_database
       })
 
-
-      info_source_data <- reactive({
+      # Info
+      intro_source_database <- reactive({
         req(input_general())
 
-        input_general()$info_source_data
+        input_general()$intro_source_database
       })
 
 
@@ -66,19 +67,37 @@ module02_anova_s01_varselection_server <- function(id, input_general){
 
 
 
+  output$intro_source_database <- renderText({
+
+    #req(intro_source_database())
+
+
+    contenido_texto <- paste(intro_source_database(), collapse = "<br>")
+    contenido_texto
+
+
+  })
+
+
+
+
   output$vars_selection2 <- renderUI({
 
     ns <- shiny::NS(id)
 
-    if(is.null(all_var_names())) return(NULL)
+    if(is.null(vector_var_names_database())) return(NULL)
 
-    set_options <- setup_var_info(all_var_names = all_var_names())
+    set_options <- setup_var_info(all_var_names = vector_var_names_database())
     set_options <- c("Seleccione una..." = "", set_options)
 
 
     div(shinyjs::useShinyjs(), id = ns("input-var-selection"),
-        h2("Initial user election - ANOVA 1 Way"),
-        h3(paste0("Info source data: ", info_source_data())),
+        h1("ANOVA 1 Way"),
+        fluidRow( column(12,
+                         h2("Database details"),
+                         tags$div(
+                           style = "font-size: 30px;",
+                           htmlOutput(ns("intro_source_database"))))),
         br(), br(), br(),
 
       fluidRow(
@@ -230,7 +249,7 @@ module02_anova_02_rscience_server <- function(id, input_general, input_01_anova)
 
   # Input general
       database <- reactive(input_general()$database)
-      all_var_names <- reactive(input_general()$all_var_names)
+      all_var_names <- reactive(input_general()$vector_var_names_database)
 
   # Input 01 - Anova
     var_name_vr <- reactive(input_01_anova()$var_name_vr)
@@ -778,7 +797,7 @@ module02_anova_02_rscience_server <- function(id, input_general, input_01_anova)
                                                         alpha_value = "0.05", selected_path = NULL,
                                                         selected_pos_vars = selected_pos_vars(),
                                                         name_database = input$file_example,
-                                                        all_colnames = all_var_names())
+                                                        all_colnames = vector_var_names_database())
 
 
         codigo_fuente <- capture.output(anova_full_gen01)
