@@ -13,10 +13,28 @@ module02_anova_s01_varselection_ui <- function(id){
 }
 
 
-module02_anova_s01_varselection_server <- function(id, all_var_names){
+
+
+module02_anova_s01_varselection_server <- function(id, input_general){
   moduleServer(
     id,
     function(input, output, session) {
+
+      # # # Very importan objects from input_general
+      all_var_names <- reactive({
+        req(input_general())
+
+        input_general()$all_var_names
+      })
+
+
+      info_source_data <- reactive({
+        req(input_general())
+
+        input_general()$info_source_data
+      })
+
+
 
       # Initial values
       initial_color <- "#F4A020"
@@ -46,6 +64,8 @@ module02_anova_s01_varselection_server <- function(id, all_var_names){
         )
       })
 
+
+
   output$vars_selection2 <- renderUI({
 
     ns <- shiny::NS(id)
@@ -58,6 +78,9 @@ module02_anova_s01_varselection_server <- function(id, all_var_names){
 
     div(shinyjs::useShinyjs(), id = ns("input-var-selection"),
         h2("Initial user election - ANOVA 1 Way"),
+        h3(paste0("Info source data: ", info_source_data())),
+        br(), br(), br(),
+
       fluidRow(
         column(2,
         selectInput(inputId = ns("var_vr"), label = "Variable Respuesta",

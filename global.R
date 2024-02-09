@@ -14,6 +14,7 @@ library("Hmisc")
 # # # # #
 
 # # # # #
+# source(file = "module00_database_s01_excel.R")
 source(file = "database_example_OK.R")
 source(file = "modules_all_OK.R")
 source(file = "functions_OK.R")

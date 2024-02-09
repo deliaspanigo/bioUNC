@@ -1,10 +1,8 @@
 # Space database
 
-space_database <- "space_database"
-
 
 # # # 01) UI - Selection for 'database'
-module01_database_s01_rscience_ui <- function(id){
+module01_database_s01_excel_ui <- function(id){
   ns <- shiny::NS(id)
 
 
@@ -14,37 +12,20 @@ module01_database_s01_rscience_ui <- function(id){
       fluidRow(
         column(2,
 
-             # # # Select source of information
-             selectInput(inputId = ns("file_source"), label = "File source...",
-                         choices = c("Select a file source..." = "",
-                                     "R-science examples" = "example",
-                                     "xlsx" = "xlsx")),
-
              # # # For xlsx files...
              div(shinyjs::useShinyjs(), id = ns("input-xlsx"),
-             conditionalPanel(condition = 'input.file_source == "xlsx"',ns = ns,
                               fileInput(inputId = ns("info_xlsx"),
                                         label = "File '.xlsx' selection..."),
                               uiOutput(ns("sheet_selection"))
-             )),
-
-             # # # For example files
-             div(shinyjs::useShinyjs(), id = ns("input-example"),
-             conditionalPanel(condition = 'input.file_source == "example"', ns = ns,
-                              selectInput(inputId = ns("file_example"),
-                                          label = "Example",
-                                          choices = c("Select..." = "",
-                                                      "mtcars_mod",
-                                                      "iris_mod",
-                                                      "mtcars",
-                                                      "iris")
-                              ))
-        )
+             )
         ),
+
+
         # # # Action buttons
         column(6, br(), uiOutput(ns("action_buttons")))
+      ),  br(), br(),
 
-        ), # End fluidRow
+    # End fluidRow
 
     # # # Visualization for database
     fluidRow(
@@ -56,8 +37,10 @@ module01_database_s01_rscience_ui <- function(id){
   ) # End div
 }
 
+
+
 # # # 01) SERVER - Selection for 'database'
-module01_database_s01_rscience_server <- function(id){
+module01_database_s01_excel_server <- function(id){
   moduleServer(
     id,
     function(input, output, session) {
@@ -77,7 +60,7 @@ module01_database_s01_rscience_server <- function(id){
       sheets_xlsx <- reactiveVal(NULL)
 
       # # Default - Control for source of information
-      control_xlsx <- reactiveVal(FALSE)
+      control_user_99 <- reactiveVal(FALSE)
       control_example <- reactiveVal(FALSE)
 
       database <- reactiveVal(NULL)
@@ -112,63 +95,16 @@ module01_database_s01_rscience_server <- function(id){
 
 
 
-      # # # File source --------------------------------------------------------
-      # # 1) Control
-      control_file_source_99 <- reactive({
-
-        validate(
-          # # # File name control
-          need(!is.null(input$file_source), 'Error 05: input$file_source problems!.'),
-          need(input$file_source != "", 'Select a file source.')
-        )
-
-        return(TRUE)
-
-      })
-
-      # # 2) Observ Event for input$file_source
-      observeEvent(input$file_source, {
-
-        req(control_file_source_99())
-
-        # # # Reset for action buttons
-        action_button_load(FALSE)
-        action_button_show(FALSE)
-        color_button_load(hardcorded_initial_color)
-
-        selected_info_xlsx(NULL)
-        shinyjs::reset("input-xlsx")
-        shinyjs::reset("sheet_xlsx")
-        # # # Reset database
-        database(NULL)
-
-      })
-
-
 
 
       # # # Excel --------------------------------------------------------------
       # # # Excel control 01 of 04
       # input$file_source is "xlsx"
-      control_xlsx_01 <- reactive({
-
-        req(control_file_source_99())
-
-        validate(
-          need(input$file_source == 'xlsx', 'Error 03: File source error!.'),
-        )
-
-        return(TRUE)
-
-      })
-
 
 
       # # # Excel control 02 of 04
       # input$info_xlsx control
-      control_xlsx_02 <- reactive({
-
-        req(control_xlsx_01())
+      control_user_01 <- reactive({
 
         # # # Initial text
         validate(
@@ -196,9 +132,10 @@ module01_database_s01_rscience_server <- function(id){
 
       })
 
+
       observeEvent(input$info_xlsx, {
 
-        req(control_xlsx_02())
+        req(control_user_01())
         # # # Reset for action buttons
         action_button_load(FALSE)
         action_button_show(FALSE)
@@ -215,9 +152,9 @@ module01_database_s01_rscience_server <- function(id){
 
       # # # Excel control 03 of 04
       # input$info_xlsx control
-      control_xlsx_03 <- reactive({
+      control_user_02 <- reactive({
 
-        req(control_xlsx_02())
+        req(control_user_01())
 
         # # # Initial text
         validate(
@@ -245,9 +182,10 @@ module01_database_s01_rscience_server <- function(id){
 
       })
 
+
       observeEvent(selected_info_xlsx(), {
 
-        req(control_xlsx_03())
+        req(control_user_02())
         database(NULL)
         sheets_xlsx(NULL)
 
@@ -274,7 +212,7 @@ module01_database_s01_rscience_server <- function(id){
         ns <- shiny::NS(id)
 
         # Previuos controls
-        req(control_xlsx_03())
+        req(control_user_02())
 
         pos_selected <- 1
 
@@ -288,9 +226,9 @@ module01_database_s01_rscience_server <- function(id){
 
 
       # # # Excel control 04 of 04
-      control_xlsx_04 <- reactive({
+      control_user_03 <- reactive({
 
-        req(control_xlsx_03())
+        req(control_user_02())
 
         validate(
 
@@ -306,9 +244,10 @@ module01_database_s01_rscience_server <- function(id){
 
       })
 
+
       observeEvent(input$sheet_xlsx, {
 
-        req(control_xlsx_04())
+        req(control_user_03())
 
 
 
@@ -359,35 +298,17 @@ module01_database_s01_rscience_server <- function(id){
       # For each source of information there is a specific control.
       # Each control return only a TRUE or FALSE.
       # Depending on the user's choice, the control_file_source_99 object pipes the corresponding control.
-      control_xlsx <- reactive({
+      control_user_99 <- reactive({
 
-        req(control_xlsx_04())
+        req(control_user_03())
 
-        dt_control <- control_xlsx_04()
-
-        return(dt_control)
-
-      })
-
-
-      control_example <- reactive({
-
-        #req(input$file_source, input$file_example)
-        dt_control <- FALSE
-        if(is.null(input$file_source)) return(dt_control)
-        if(is.null(input$file_example)) return(dt_control)
-
-        vector_items <- c(input$file_source, input$file_example)
-        dt_vector <- vector_items != ""
-        dt_ok <- sum(dt_vector) == length(dt_vector)
-
-        if(dt_ok) dt_control <- TRUE
+        dt_control <- control_user_03()
 
         return(dt_control)
 
       })
 
-      #
+
 
 
       # # # Activate 'load' ---------------------------------------------
@@ -399,79 +320,43 @@ module01_database_s01_rscience_server <- function(id){
       observeEvent(input$action_load, {
 
 
-        req(input$action_load, control_file_source_99())
-
-
-        if(control_file_source_99()){
-             action_button_load(TRUE)
-
-
-              if(input$file_source == "xlsx"){
-                #selected_info_xlsx(input$info_xlsx)
-              }
-        }
-
+        req(input$action_load, control_user_99())
+        action_button_load(TRUE)
+        database(
+          read.xlsx(xlsxFile = selected_info_xlsx()$datapath,
+                    sheet = input$"sheet_xlsx")
+        )
       })
+
+
+
 
 
       # Import database --------------------------------------------------------
-      observeEvent(action_button_load(),{
-
-        if(action_button_load()){
-
-
-          if(input$file_source == "xlsx"){
-
-
-            req(control_xlsx())
-
-
-            # # Internal control to stop no changes in some input
-            # ######################################################################
-            # name_sheets <- openxlsx::getSheetNames(input$info_xlsx$datapath)
-            # selected_sheet <- input$"sheet_xlsx"
-            # dt_inside <- sum(name_sheets == selected_sheet) == 1
-            # if(!dt_inside) return(NULL)
-            # ######################################################################
-
-            database(
-              read.xlsx(xlsxFile = selected_info_xlsx()$datapath,
-                        sheet = input$"sheet_xlsx")
-            )
-
-
-          } else
-
-
-
-            if (input$file_source == "example"){
-
-
-              req(control_example())
-
-              database(
-                eval(parse(text = input$file_example))
-              )
-
-
-
-            }
-
-
-        }
-      })
+      # observeEvent(action_button_load(),{
+      #
+      #
+      #       req(control_user_99(), action_button_load())
+      #
+      #
+      #       database(
+      #         read.xlsx(xlsxFile = selected_info_xlsx()$datapath,
+      #                   sheet = input$"sheet_xlsx")
+      #       )
+      #
+      # })
 
 
       # # # database post control
       control02_post_database <- reactive({
 
-        req(action_button_load(), control_file_source_99())
+        req(control_user_99(), action_button_load())
 
         validate(
           need(!is.null(database()), "Error Database 01: 'database' is a NULL object."),
           need(is.data.frame(database()), "Error Database 02: The 'database' object must be a dataframe."),
           need(ncol(database()) > 0, "Error Database 03: 'database' must have at least one column."),
-          need(ncol(database()) > 0, "Error Database 04: 'database' must have at least one row."),
+          need(ncol(database()) > 0, "Error Database 04: 'database' must have at least one row.")
 
 
         )
@@ -482,44 +367,48 @@ module01_database_s01_rscience_server <- function(id){
       })
 
 
+      observeEvent(action_button_load(),{
+
+
+        req(control_user_99(), action_button_load(), control02_post_database())
+
+        action_button_show(TRUE)
+      })
+
+
+
       # # # Activate 'show'
       # If database has beed imported succesfully, and all the controls
       # post upload are OK, we put the status for 'show' as TRUE.
-      observeEvent(control02_post_database(), {
+      observeEvent(input$action_load, {
+        #req(control02_post_database())
+        if(!action_button_show() && is.null(database())){
 
-        req(control02_post_database())
-        action_button_show(TRUE)
+                  color_button_load("red")
+        } else color_button_load("green")
+
+
 
       })
 
-      # 2) We also activate a color change on the buttons.
-      # If the previous controls are met, it will be GREEN.
-      # # If the prior control is not met, it will be red.
-      # observeEvent(control_file_source_99(), {
+
+
+
+      # observeEvent(action_button_load(), {
+      #
+      #   #req(action_button_show())
+      #   print("AAA")
+      #   print(is.null(control02_post_database()))
+      #   print(control02_post_database())
+      #   print("BBB")
       #
       #
+      #     if(action_button_show()) color_button_load("green") else
+      #       if(!control02_post_database() && !action_button_show()) color_button_load("red") else
+      #         if(is.null(control02_post_database()) && !action_button_show()) color_button_load("red")
       #
-      #   if(is.null(control_file_source_99())){
-      #
-      #     if(!action_button_load()) color_button_load(hardcorded_initial_color) else
-      #     if(action_button_load()) color_button_load("red")
-      #
-      #   } else
-      #
-      #   if(control_file_source_99()){
-      #     if(action_button_load()) color_button_load("green")
-      #   }
       #
       # })
-
-      observeEvent(control02_post_database(), {
-
-        if(is.null(control02_post_database())) color_button_load(hardcorded_initial_color) else
-          if(control02_post_database()) color_button_load("green") else
-            if(!control02_post_database()) color_button_load("red")
-
-
-      })
 
 
 
@@ -560,20 +449,39 @@ module01_database_s01_rscience_server <- function(id){
 
 
      all_var_names <- reactive({
-       #req(database())
+
+       req(database(), action_button_show())
        colnames(database())
+     })
+
+
+
+     intro_source_data <- reactive({
+
+       req(database(), action_button_show())
+
+       out_detail <- paste0("Excel file - ", selected_info_xlsx()$name)
+       out_detail
+     })
+
+     xlsx_file_name <- reactive({
+
+       req(database(), action_button_show())
+       selected_info_xlsx()$name
+
      })
 
      output_list <- reactive({
 
-       req(action_button_show())
+       req(database(),
+           action_button_show(),
+           all_var_names(), intro_source_data(), xlsx_file_name())
 
-       if(!action_button_show()) return(NULL)
 
 
-       the_list <- list(all_var_names(), database())
+       the_list <- list(all_var_names(), database(), intro_source_data(), xlsx_file_name())
 
-       names(the_list) <- c("all_var_names", "database")
+       names(the_list) <- c("all_var_names", "database", "info_source_data", "xlsx_file_name")
 
        return(the_list)
        })

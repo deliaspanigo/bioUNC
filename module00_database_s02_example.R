@@ -1,0 +1,292 @@
+# Space database
+
+space_database <- "space_database"
+
+
+# # # 01) UI - Selection for 'database'
+module01_database_s02_example_ui <- function(id){
+  ns <- shiny::NS(id)
+
+  vector_opt <- c("Select..." = "", "mtcars_mod", "iris_mod", "mtcars", "iris")
+
+  div(shinyjs::useShinyjs(), id = ns("input-panel"),
+
+      h2("Initial user election - database"),
+      fluidRow(
+        column(2,
+
+         # # # R examples selector
+        div(shinyjs::useShinyjs(), id = ns("input-example"),
+          selectInput(inputId = ns("file_example"),
+                      label = "R Examples",
+                      choices = vector_opt)
+
+               ) # Div
+        ),
+
+        # # # Action buttons
+        column(6, br(), uiOutput(ns("action_buttons")))
+
+      ), # End fluidRow
+      br(), br(),
+
+      # # # Visualization for database
+      fluidRow(
+
+        column(12, tableOutput(ns("df_database")))
+
+      )
+
+  ) # End div
+}
+
+# # # 01) SERVER - Selection for 'database'
+module01_database_s02_example_server <- function(id){
+  moduleServer(
+    id,
+    function(input, output, session) {
+
+
+      # # # Initial objects and default values -------------------------------------------------
+      # # Action buttons - default values
+      action_button_load <- reactiveVal(FALSE)
+      action_button_show <- reactiveVal(FALSE)
+
+      # # Colours for actions buttons
+      hardcorded_initial_color <- "#F4A020"
+      color_button_load <- reactiveVal(hardcorded_initial_color)
+
+      control_example <- reactiveVal(FALSE)
+
+      database <- reactiveVal(NULL)
+
+
+
+      # # # renderUI for action buttons ----------------------------------------
+      output$action_buttons <- renderUI({
+
+        ns <- shiny::NS(id)
+        req(color_button_load())
+
+        # # # Style for load button
+        standard_style_button_load <- "color: white; background-color: _color_;width: 150px; height: 50px; font-size: 20px;"
+        output_style_button_load <- gsub(pattern = "_color_",
+                                         replacement = color_button_load(),
+                                         x = standard_style_button_load)
+
+        # # # Style for reset button
+        output_style_button_reset <- "color: white; background-color: #F4A020;width: 150px; height: 50px; font-size: 20px;"
+
+        # # # UI content
+        div(
+          fluidRow(
+            column(2, actionButton(ns("action_load"), label = "LOAD", style = output_style_button_load)),
+            column(8),
+            column(2, actionButton(ns("action_reset_all"), "RESET ALL", style = output_style_button_reset))
+          )
+        )
+      })
+
+
+
+      control_user_01 <- reactive({
+
+        # # # Initial text
+        validate(
+          need(!is.null(input$file_example), "Error 01: input$file_example can not be NULL.")
+        )
+
+        # # # File name control
+        validate(
+          need(input$file_example != '', 'Select an R example.')
+        )
+
+
+        return(TRUE)
+
+      })
+
+
+      observeEvent(input$file_example, {
+
+        req(control_user_01())
+        # # # Reset for action buttons
+        action_button_load(FALSE)
+        action_button_show(FALSE)
+        color_button_load(hardcorded_initial_color)
+
+        # # # Reset database
+        database(NULL)
+
+      })
+
+
+      control_user_99 <- reactive({
+
+        req(control_user_01())
+
+        dt_control <- control_user_01()
+
+        return(dt_control)
+
+      })
+
+
+
+      # # # Reset actions
+      # There are differents reset actions.
+      #
+      # # 01) Reset All with reset button---------------------------------------
+      observeEvent(input$action_reset_all, {
+
+        # # # Reset for div()
+        shinyjs::reset("input-panel")
+
+        # # # Reset for action buttons
+        action_button_load(FALSE)
+        action_button_show(FALSE)
+        color_button_load(hardcorded_initial_color)
+
+        # # # Reset database
+        database(NULL)
+      })
+
+
+
+      # # # Activate 'load' ---------------------------------------------
+      # 1) If the load button is pressed...
+      # If all the previous control for database are OK we change the state of
+      # the action "load" to TRUE.
+
+      observeEvent(input$action_load, {
+
+
+        req(control_user_99(), input$action_load)
+        action_button_load(TRUE)
+
+
+
+      })
+
+
+
+
+
+      # Import database --------------------------------------------------------
+      observeEvent(action_button_load(),{
+
+        req(control_user_99(), action_button_load())
+
+          database(
+            eval(parse(text = input$file_example))
+          )
+
+
+
+
+
+
+      })
+
+
+
+
+      # # # database post control
+      control_database <- reactive({
+
+        req(control_user_99(), action_button_load())
+
+        validate(
+          need(!is.null(database()), "Error Database 01: 'database' is a NULL object."),
+          need(is.data.frame(database()), "Error Database 02: The 'database' object must be a dataframe."),
+          need(ncol(database()) > 0, "Error Database 03: 'database' must have at least one column."),
+          need(ncol(database()) > 0, "Error Database 04: 'database' must have at least one row."),
+
+
+        )
+
+
+        return(TRUE)
+
+      })
+
+
+
+      observeEvent(control_database(), {
+
+        req(control_database())
+        action_button_show(TRUE)
+
+      })
+
+
+
+      observeEvent(action_button_show(), {
+
+        if(is.null(control_database())) color_button_load(hardcorded_initial_color) else
+          if(action_button_show()) color_button_load("green") else
+            if(!control_database()) color_button_load("red")
+
+
+      })
+
+      output$df_database <- renderTable({
+
+
+        req(control_database(), database(), action_button_show())
+
+        database()
+        #mtcars
+      }, rownames = TRUE, align = "c")
+
+
+
+
+
+
+
+      all_var_names <- reactive({
+
+        req(database(), action_button_show())
+        colnames(database())
+      })
+
+
+      info_source_data <- reactive({
+
+        req(database(), action_button_show())
+        #req(input$file_example)
+
+        out_detail <- paste0("R file - ", input$file_example)
+        out_detail
+      })
+
+      output_list <- reactive({
+
+        req(database(), action_button_show(), all_var_names())
+
+
+
+        the_list <- list(all_var_names(), database(), info_source_data())
+
+        names(the_list) <- c("all_var_names", "database", "info_source_data")
+
+        return(the_list)
+      })
+
+
+
+
+
+
+
+
+
+      return(output_list)
+
+
+
+    }
+  )
+}
+

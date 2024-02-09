@@ -1,6 +1,8 @@
 
 
-source(file = "module00_database.R")
+source(file = "module00_database_s01_excel.R")
+source(file = "module00_database_s02_example.R")
+
 
 source(file = "module01_ANOVA.R")
 

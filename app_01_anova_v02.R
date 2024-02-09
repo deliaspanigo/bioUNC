@@ -218,7 +218,20 @@ ui <- dashboardPage(
     tabItems(
       # 1) Data base selection
       tabItem(tabName = "tab01_database",
-              module01_database_s01_rscience_ui(id = space_database)),
+              selectInput(inputId = "file_source",
+                          label = "File source...",
+                          choices = c("Select a file source..." = "",
+                                      "R examples" = "example",
+                                      "xlsx" = "xlsx")),
+
+              conditionalPanel(condition = 'input.file_source == "xlsx"',
+                module01_database_s01_excel_ui(id = "data_excel")
+                ),
+
+        conditionalPanel(condition = 'input.file_source == "example"',
+                         module01_database_s02_example_ui(id = "data_example")
+                         )
+        ),
 
       # 2) ANOVA
       tabItem(tabName = "tab02_anova",
@@ -241,19 +254,111 @@ server <- function(input, output, session) {
   # # # Initial inputs
   # - all_var_names()
   # - database
-  input_general <- module01_database_s01_rscience_server(id = space_database)
+
+  input_general_01_xlsx <- module01_database_s01_excel_server(id = "data_excel")
+
+  input_general_02_example <- module01_database_s02_example_server(id = "data_example")
+
+  input_general <- reactiveVal(NULL)
+
+  # observeEvent(input_general_01_xlsx(),{
+  #
+  #   if (input$file_source == "xlsx"){
+  #
+  #   input_general(NULL)
+  #   input_general(input_general_01_xlsx())
+  #
+  #   }
+  # })
+  #
+  # observeEvent(input_general_02_example(),{
+  #
+  #   if (input$file_source == "example"){
+  #
+  #     input_general(NULL)
+  #     input_general(input_general_02_example())
+  #
+  #   }
+  # })
+
+  input_general <- reactive({
+
+    if (input$file_source == "xlsx")  input_general_01_xlsx() else
+      if (input$file_source == "example") input_general_02_example() else NULL
+
+  })
+
+  # input_general <- reactive({
+  #
+  #   if (input$file_source == "xlsx")  input_general_01_xlsx() else
+  #     if (input$file_source == "example") input_general_02_example() else NULL
+  #
+  # })
 
 
+
+  # input_general_01_xlsx <- module01_database_s01_excel_server(id = "data_excel")
+  #
+  # input_general_02_example <- module01_database_s02_example_server(id = "data_example")
+
+  # input_general <- reactive({
+  #
+  #
+  #   input_general_01_xlsx()
+  # })"all_var_names", "database"
+  #input_general <- reactiveVal(NULL)
+
+
+
+
+
+
+  #
+  # input_general <- reactive ({
+  #
+  #   if (input$file_source == "xlsx")  return(input_general_01_xlsx()) else
+  #     if (input$file_source == "example") return(input_general_02_example()) else
+  #       return(NULL)
+  #
+  # })
+
+  # input_general  <- reactiveVal(NULL)
+  #
+  # observeEvent(input$file_source, {
+  #   if (input$file_source == "xlsx") {
+  #     input_general(input_general_01_xlsx())
+  #   } else
+  #     if (input$file_source == "example") {
+  #     input_general(input_general_02_example())
+  #   } else input_general(NULL)
+  #
+  #   print(input_general())
+  # })
+
+
+  #input_general_999 <- reactiveValues(all_var_names= NULL, database = NULL)
+#
+#   observeEvent(input$file_source,{
+#
+#     if(input$file_source == "xlsx") input_general_999(input_general_excel())
+#
+#
+#     })
   # # # Vars selection for anova
   # - "var_name_vr", "var_name_factor", "alpha_value"
+
+
+
+
   input_01_anova <- module02_anova_s01_varselection_server(id = "anova01",
-                                     all_var_names = reactive(input_general()$all_var_names))
+                                          input_general = input_general)
 
 
 
   module02_anova_s02_rscience_server(id = "anova02",
                                      input_general = input_general,
                                      input_01_anova = input_01_anova)
+
 
 
 
