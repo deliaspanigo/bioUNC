@@ -18,7 +18,8 @@ super_sheet_info <- function(name_sheets){
                                         side = "right", pad = " ")
 
 
-  full_info_sheets <- paste0("Sheet ", stock_pos_sheets, " - ", stock_name_sheets)
+  # full_info_sheets <- paste0("Sheet ", stock_pos_sheets, " - ", stock_name_sheets)
+  full_info_sheets <- paste0(stock_pos_sheets, " - ", stock_name_sheets)
 
   output_vector <- name_sheets
   names(output_vector) <- full_info_sheets

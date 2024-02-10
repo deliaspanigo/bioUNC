@@ -26,7 +26,7 @@ module01_database_s01_excel_ui <- function(id){
       ),
     br(), br(), br(),
     # End fluidRow
-
+    textOutput(ns("calling_help")),
     uiOutput(ns("show_all_database"))
 
   ) # End div
@@ -47,7 +47,7 @@ module01_database_s01_excel_server <- function(id){
       action_button_show <- reactiveVal(FALSE)
 
       # # Colours for actions buttons
-      hardcorded_initial_color <- "#F4A020"
+      hardcorded_initial_color <- "orange" #"#F4A020"
       color_button_load <- reactiveVal(hardcorded_initial_color)
 
       # # Default - 'database' object
@@ -56,7 +56,6 @@ module01_database_s01_excel_server <- function(id){
 
       # # Default - Control for source of information
       control_user_99 <- reactiveVal(FALSE)
-      control_example <- reactiveVal(FALSE)
 
       database <- reactiveVal(NULL)
 
@@ -207,7 +206,7 @@ module01_database_s01_excel_server <- function(id){
         ns <- shiny::NS(id)
 
         # Previuos controls
-        req(control_user_02())
+        req(sheets_xlsx())
 
         pos_selected <- 1
 
@@ -388,19 +387,14 @@ module01_database_s01_excel_server <- function(id){
 
 
 
-
-     # , rownames = TRUE, align = "c"
-      output$df_database <- renderDataTable({
+      output$df_database <- renderTable({
 
 
         req(action_button_show(), intro_source_database(), database())
 
         database()
         #mtcars
-      })
-
-
-
+      }, rownames = TRUE, align = "c")
 
       # # # More objects
       # # Vector with var names from database
@@ -431,27 +425,8 @@ module01_database_s01_excel_server <- function(id){
 
 
 
-      # # Intro for source data (its information)
+
       intro_source_database <- reactive({
-
-       req(action_button_show(), database())
-
-        text_list <- list(
-          paste0("File source: '.xlsx' user file."),
-          paste0("File name: ", file_name_database()),
-          paste0("Total sheets: ", length(sheets_xlsx())),
-          paste0("Full file size: ", selected_info_xlsx()$size),
-          paste0("Selected sheet name: ", input$sheet_xlsx),
-          paste0("Selected sheet size: ", file_size_database()),
-          paste0("Cols: ", ncol(database())),
-          paste0("Rows: ", nrow(database()))
-        )
-
-        text_list
-
-     })
-
-      intro_source_database2 <- reactive({
 
         req(action_button_show(), database())
 
@@ -470,28 +445,21 @@ module01_database_s01_excel_server <- function(id){
 
       })
 
-      output$intro_source_database <- renderText({
+
+
+      output$intro_source_database <- renderTable({
 
         req(action_button_show(), intro_source_database(), database())
 
 
-        contenido_texto <- paste(intro_source_database(), collapse = "<br>")
+        df_output <- as.data.frame(intro_source_database())
+        colnames(df_output) <- names(intro_source_database())
+        df_output
 
 
-
-      })
-
-
-      output$tabla02 <- renderTable({
-
-        req(action_button_show(), intro_source_database(), database())
+      }, rownames = FALSE, align = 'c', border = "all")
 
 
-        as.data.frame(intro_source_database2())
-
-
-
-      })
 
       output$show_all_database <- renderUI({
 
@@ -504,18 +472,24 @@ module01_database_s01_excel_server <- function(id){
                        h2("Database details"),
                        tags$div(
                          style = "font-size: 30px;",
-                         tableOutput(ns("tabla02"))))),
-      fluidRow( column(12,
-                       h2("Database details"),
-                       tags$div(
-                         style = "font-size: 30px;",
-                         htmlOutput(ns("intro_source_database"))))),
+                         tableOutput(ns("intro_source_database"))))),
+
       br(), br(), br(),
-      fluidRow(column(12,
-                      h2("Database"),
-                      dataTableOutput(ns("df_database")))
+          fluidRow(column(12,
+                          h2("Database"),
+                          tableOutput(ns("df_database")))
       )
       )
+
+      })
+
+
+
+      output$calling_help <- renderText({
+
+        req(control_user_01(), control_user_02(), control_user_03,
+            control_user_99(), control02_post_database())
+        ""
 
       })
 

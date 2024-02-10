@@ -38,7 +38,7 @@ module02_anova_s01_varselection_server <- function(id, input_general){
 
 
       # Initial values
-      initial_color <- "#F4A020"
+      initial_color <- "orange" #"#F4A020"
       color_control_var <- reactiveVal(initial_color)
       action_show_vars <- reactiveVal(FALSE)
 
@@ -67,13 +67,15 @@ module02_anova_s01_varselection_server <- function(id, input_general){
 
 
 
-  output$intro_source_database <- renderText({
+  output$intro_source_database <- renderTable({
 
-    #req(intro_source_database())
+    req(intro_source_database())
 
 
-    contenido_texto <- paste(intro_source_database(), collapse = "<br>")
-    contenido_texto
+    df_output <- as.data.frame(intro_source_database())
+    colnames(df_output) <- names(intro_source_database())
+    df_output
+
 
 
   })
@@ -88,36 +90,46 @@ module02_anova_s01_varselection_server <- function(id, input_general){
     if(is.null(vector_var_names_database())) return(NULL)
 
     set_options <- setup_var_info(all_var_names = vector_var_names_database())
-    set_options <- c("Seleccione una..." = "", set_options)
+    set_options <- c("Var selection..." = "", set_options)
 
 
     div(shinyjs::useShinyjs(), id = ns("input-var-selection"),
-        h1("ANOVA 1 Way"),
-        fluidRow( column(12,
-                         h2("Database details"),
-                         tags$div(
-                           style = "font-size: 30px;",
-                           htmlOutput(ns("intro_source_database"))))),
+
+
+        fluidRow(
+          column(2, h1("ANOVA 1 Way"))
+          ),
+        fluidRow(
+          column(6,
+                 #     h2("Database details"),
+                 tags$div(style = "font-size: 30px;",
+                          tableOutput(ns("intro_source_database"))))
+          ),
         br(), br(), br(),
 
       fluidRow(
         column(2,
-        selectInput(inputId = ns("var_vr"), label = "Variable Respuesta",
+        selectInput(inputId = ns("var_vr"), label = "Response Variable",
                     choices = set_options ,
-                    selected = set_options[1]),
+                    selected = set_options[1])
+        ),
+        column(2,
         selectInput(inputId = ns("var_factor"), label = "Factor",
                     choices = set_options,
                     selected = set_options[1])
         ),
-        column(2,  selectInput(inputId = ns("alpha_value"), label = "Alpha",
+
+        column(2,  selectInput(inputId = ns("alpha_value"), label = "Alpha value",
                                choices = c(0.10, 0.05, 0.01),
                                selected = 0.05)
                ),
-        column(6, uiOutput(ns("action_buttons"))
+        column(4, br(), br(), uiOutput(ns("action_buttons"))
                )
 
     )
     )
+
+
   })
 
 
@@ -224,7 +236,7 @@ module02_anova_02_rscience_ui <- function(id){
   new_name <- "Requeriments"
 
   armado <- "
-    .tabbable > .nav > li > a                  {background-color: aqua;  color:black}
+    .tabbable > .nav > li > a                  {background-color: aqua;  color:black; font-size: 16px;}
     .tabbable > .nav > li > a[data-value='_new_name_'] {background-color: red;   color:white}
 
       }
@@ -682,7 +694,9 @@ module02_anova_02_rscience_server <- function(id, input_general, input_01_anova)
         # Usar lapply para mostrar los elementos deseados
         elementos_a_ver <- lapply(nombres_a_ver, function(nombre) mi_lista[[nombre]])
         names(elementos_a_ver) <- nombres_a_ver
+
         elementos_a_ver
+
 
       })
 

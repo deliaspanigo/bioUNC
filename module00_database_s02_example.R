@@ -7,7 +7,11 @@ space_database <- "space_database"
 module01_database_s02_example_ui <- function(id){
   ns <- shiny::NS(id)
 
-  vector_opt <- c("Select..." = "", "mtcars_mod", "iris_mod", "mtcars", "iris")
+  vector_opt <- c("Select one..." = "",
+                  "01 - mtcars_mod" = "mtcars_mod",
+                  "02 - iris_mod" = "iris_mod",
+                  "03 - mtcars" = "mtcars",
+                  "04 - iris" = "iris")
 
   div(shinyjs::useShinyjs(), id = ns("input-panel"),
 
@@ -29,7 +33,7 @@ module01_database_s02_example_ui <- function(id){
 
       ), # End fluidRow
       br(), br(), br(),
-
+      textOutput(ns("calling_help")),
       # # # Visualization for database
       uiOutput(ns("show_all_database"))
 
@@ -49,10 +53,9 @@ module01_database_s02_example_server <- function(id){
       action_button_show <- reactiveVal(FALSE)
 
       # # Colours for actions buttons
-      hardcorded_initial_color <- "#F4A020"
+      hardcorded_initial_color <- "orange" #"#F4A020"
       color_button_load <- reactiveVal(hardcorded_initial_color)
 
-      control_example <- reactiveVal(FALSE)
 
       database <- reactiveVal(NULL)
 
@@ -271,11 +274,11 @@ module01_database_s02_example_server <- function(id){
         req(action_button_show(), database())
 
         text_list <- list(
-          paste0("File source: R example."),
-          paste0("File name: ", file_name_database()),
-          paste0("Database size: ", file_size_database()),
-          paste0("Cols: ", ncol(database())),
-          paste0("Rows: ", nrow(database()))
+          "File source" = "R example",
+          "File name" = file_name_database(),
+          # "Database size" = file_size_database(),
+          "Cols" = ncol(database()),
+          "Rows"= nrow(database())
         )
 
         text_list
@@ -283,16 +286,19 @@ module01_database_s02_example_server <- function(id){
       })
 
 
-      output$intro_source_database <- renderText({
+      output$intro_source_database <- renderTable({
 
         req(action_button_show(), intro_source_database(), database())
 
 
-        contenido_texto <- paste(intro_source_database(), collapse = "<br>")
+        df_output <- as.data.frame(intro_source_database())
+        colnames(df_output) <- names(intro_source_database())
+        df_output
 
 
 
-      })
+
+      }, rownames = FALSE, align = 'c', border = "all")
 
 
 
@@ -308,7 +314,7 @@ module01_database_s02_example_server <- function(id){
                            h2("Database details"),
                            tags$div(
                              style = "font-size: 30px;",
-                             htmlOutput(ns("intro_source_database"))))),
+                             tableOutput(ns("intro_source_database"))))),
           br(), br(), br(),
           fluidRow(column(12,
                           h2("Database"),
@@ -320,7 +326,12 @@ module01_database_s02_example_server <- function(id){
 
 
 
+      output$calling_help <- renderText({
 
+        req(control_user_01(), control_user_99(), control_database())
+        ""
+
+      })
 
 
 

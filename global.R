@@ -6,6 +6,7 @@ library("shinyjs")
 library("shinydashboard")
 library("openxlsx")  # Para archivos XLSX
 library("stringr")
+library("shinyWidgets")
 
 library("tools")
 library("rmarkdown")
