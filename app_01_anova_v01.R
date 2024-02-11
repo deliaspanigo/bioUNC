@@ -31,7 +31,9 @@ module02_anova_s02_rscience_ui <- function(id){
                                         fluidRow(
                                           column(12,
                                                  h2("Anova 1 way"),
-                                                 plotOutput(ns("tab04_plots"))
+                                                 plotOutput(ns("tab04_plots")),
+                                                 br(),
+                                                 plotlyOutput(ns("plot666"))
                                           )
                                         )
                                ),
@@ -147,6 +149,12 @@ module02_anova_s02_rscience_server <- function(id, input_general, input_01_anova
 
         boxplot(results_01_anova()$minibase[,1] ~ results_01_anova()$minibase[,2],
                 col = "red")
+      })
+
+
+      output$plot666 <- renderPlotly({
+        # Crear un gráfico de ejemplo
+        plot_ly(x = 1:10, y = 1:10, type = "scatter", mode = "markers")
       })
 
       ###############################################################

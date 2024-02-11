@@ -326,19 +326,7 @@ module01_database_s01_excel_server <- function(id){
 
 
 
-      # Import database --------------------------------------------------------
-      # observeEvent(action_button_load(),{
-      #
-      #
-      #       req(control_user_99(), action_button_load())
-      #
-      #
-      #       database(
-      #         read.xlsx(xlsxFile = selected_info_xlsx()$datapath,
-      #                   sheet = input$"sheet_xlsx")
-      #       )
-      #
-      # })
+
 
 
       # # # database post control

@@ -55,45 +55,14 @@ setup_var_info <- function(all_var_names){
 
   full_info_var <- paste0(stock_pos_var, " - ", stock_letter_var, " - ", stock_name_var)
 
-  output_vector <- pos_var
+  # output_vector <- pos_var
+  output_vector <- all_var_names
   names(output_vector) <- full_info_var
 
   return(output_vector)
 
 }
 
-super_var_info <- function(database){
-  name_var <- colnames(database)
-  pos_var <- 1:length(name_var)
-  letter_var <- openxlsx::int2col(pos_var)
-  letter_var_mod <- paste0("(", letter_var, ")")
-
-  # Stock pos
-  mount_digits <- nchar(as.character(max(pos_var)))
-  if(mount_digits < 2) mount_digits <- 2
-  stock_pos_var <- stringr::str_pad(string = pos_var, width = mount_digits,
-                                    side = "left", pad = "0")
-
-  # Stock letter
-  mount_letter <- max(nchar(letter_var_mod))
-  stock_letter_var <- stringr::str_pad(string = letter_var_mod, width = mount_letter,
-                                       side = "left", pad = " ")
-
-
-  # Stock name
-  mount_name <- max(nchar(name_var))
-  stock_name_var <- stringr::str_pad(string = name_var, width = mount_name,
-                                     side = "right", pad = " ")
-
-
-  full_info_var <- paste0(stock_pos_var, " - ", stock_letter_var, " - ", stock_name_var)
-
-  output_vector <- pos_var
-  names(output_vector) <- full_info_var
-
-  return(output_vector)
-
-}
 
 
 
@@ -261,6 +230,7 @@ obj_proc_order_names <- function(selected_fn){
 
 }
 
+
 showme_your_code <- function(selected_fn){
 
   codigo_fuente <- capture.output(selected_fn)
@@ -358,8 +328,8 @@ anova_full_gen01 <- function(database, name_var_vr, name_var_factor, alpha_value
   # # # Anova Test
   lm_anova <- lm(VR ~ FACTOR, data = minibase)            # Linear model
   aov_anova <- aov(lm_anova)                              # R results for anova
-  table_anova <- as.data.frame(summary(aov_anova)[[1]])   # Common anova table
-  table_anova
+  df_table_anova <- as.data.frame(summary(aov_anova)[[1]])   # Common anova table
+  df_table_anova
 
 
 
@@ -570,7 +540,30 @@ anova_full_gen01 <- function(database, name_var_vr, name_var_factor, alpha_value
     "est_mu_i" = vector_est_mu_i
   )
 
+#####################################################3
 
+  df_model_error <- data.frame(
+    "order" = df_factor_info$order,
+    "level" = df_factor_info$level,
+    "n" = df_factor_info$n,
+    "model_variance_error" = df_table_anova$`Mean Sq`[2]
+  )
+  df_model_error["model_standard_deviance"] <- sqrt(df_model_error$model_variance_error)
+  df_model_error["model_standard_error"] <- df_model_error["model_standard_deviance"]/sqrt(df_model_error$n)
+
+
+
+  df_table_graph01 <- data.frame(
+    "order" = df_factor_info$order,
+    "level" = df_factor_info$level,
+    "n" = df_factor_info$n,
+    "mean" = tapply(minibase[,1], minibase[,2], mean),
+    "model_standard_error" = df_model_error$model_standard_error
+  )
+  df_table_graph01["inferior_limit"] <- df_table_graph01$mean - df_table_graph01$model_standard_error
+  df_table_graph01["superior_limit"] <- df_table_graph01$mean + df_table_graph01$model_standard_error
+  df_table_graph01["color"] <- df_factor_info$color
+##############################################3
 
   # hide_: Proccesing objects order
   hide_correct_order <- obj_proc_order_names(selected_fn = anova_full_gen01)
@@ -579,6 +572,10 @@ anova_full_gen01 <- function(database, name_var_vr, name_var_factor, alpha_value
   # hide_: return!
   return(hide_output_list_objects)
 }
+
+
+
+
 
 
 

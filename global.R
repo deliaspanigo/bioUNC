@@ -11,6 +11,9 @@ library("shinyWidgets")
 library("tools")
 library("rmarkdown")
 library("Hmisc")
+library("vioplot")
+library("plotly")
+library("dplyr")
 
 # # # # #
 
